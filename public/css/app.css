@@ -1,0 +1,408 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    width: 100%;
+    /* Dark overlay + Background image path gikan sa public/images/bg-campus.jpg */
+    background: linear-gradient(rgba(15, 30, 15, 0.45), rgba(15, 30, 15, 0.45)), 
+                url('../images/bg-campus.jpg') no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.main-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Glassmorphism Outer Box */
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    max-width: 850px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 2;
+    position: relative;
+}
+
+.header-section {
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+.system-title {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Inner Glass Panel */
+.inner-glass-card {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    padding: 25px 30px;
+    position: relative;
+}
+
+.sub-title {
+    color: #111;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 25px;
+}
+
+/* --- Boxed Role Cards Grid (Welcome Page) --- */
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+    align-items: stretch;
+}
+
+.role-card {
+    background: linear-gradient(145deg, #e4f8a8, #cbf376);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 18px;
+    padding: 25px 15px;
+    text-decoration: none;
+    color: #1a1a1a;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 220px;
+}
+
+.role-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(145deg, #effdbe, #d6f882);
+    border-color: #ffffff;
+}
+
+.icon-wrapper {
+    font-size: 2.8rem;
+    color: #24520e;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+}
+
+.role-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.role-card h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 8px;
+    color: #0f2306;
+    letter-spacing: 0.3px;
+}
+
+.role-card p {
+    font-size: 0.78rem;
+    color: #2e3d28;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.signup-link {
+    margin-top: 15px;
+}
+
+.signup-link a {
+    color: #0d1e08;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.signup-link a:hover {
+    color: #000;
+}
+
+/* --- Role Badge & Form Styles (Login Page) --- */
+.role-avatar-badge {
+    width: 42px;
+    height: 42px;
+    background: #d8f780;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: -45px auto 10px auto;
+    border: 2px solid #ffffff;
+    color: #1f420e;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.login-heading {
+    color: #0d0d0d;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.email-note {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #222;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 580px;
+    margin: 0 auto;
+}
+
+.input-field-wrapper {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 4px 6px 4px 16px;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.input-icon {
+    color: #333;
+    font-size: 1.1rem;
+    margin-right: 12px;
+}
+
+.input-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    color: #333;
+    background: transparent;
+}
+
+.domain-badge {
+    background: #d4d8dd;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.input-subtext {
+    font-size: 0.75rem;
+    color: #222222;
+    margin-top: 4px;
+    margin-left: 6px;
+    font-weight: 600;
+}
+
+.forgot-pass-link {
+    text-align: right;
+    margin-top: 5px;
+}
+
+.forgot-pass-link a {
+    font-size: 0.82rem;
+    color: #111;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.btn-submit {
+    margin-top: 10px;
+    background: linear-gradient(180deg, #2ae269 0%, #a4f238 100%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 30px;
+    padding: 12px;
+    color: #0b1f03;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(42, 226, 105, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(42, 226, 105, 0.6);
+    filter: brightness(1.05);
+}
+
+.auth-navigation-links {
+    margin-top: 18px;
+    font-size: 0.85rem;
+    color: #111;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.auth-navigation-links a {
+    color: #0d1e08;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.superadmin-link {
+    margin-top: 25px;
+    align-self: flex-end;
+    margin-right: 5%;
+    z-index: 2;
+}
+
+.superadmin-link a {
+    color: #ffffff;
+    text-decoration: underline;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+/* Decorative Shapes */
+.shape {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.shape-top-right {
+    top: -30px;
+    right: -30px;
+    width: 250px;
+    height: 250px;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(178, 240, 70, 0.7),
+        rgba(178, 240, 70, 0.7) 12px,
+        transparent 12px,
+        transparent 24px
+    );
+    border-radius: 20px;
+}
+
+.shape-bottom-left {
+    bottom: -30px;
+    left: -30px;
+    width: 200px;
+    height: 200px;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(178, 240, 70, 0.7),
+        rgba(178, 240, 70, 0.7) 12px,
+        transparent 12px,
+        transparent 24px
+    );
+    border-radius: 20px;
+}
+
+/* --- Registration & Multi-row Inputs (Global Scope) --- */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Select Dropdown Styling for Course/Department */
+.input-box select {
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 0.92rem;
+    color: #333;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* --- Media Queries for Mobile & Tablet Responsiveness --- */
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 20px 15px;
+    }
+    .system-title {
+        font-size: 1.3rem;
+    }
+    .roles-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .role-card {
+        min-height: auto;
+        padding: 20px 15px;
+    }
+    .superadmin-link {
+        align-self: center;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
