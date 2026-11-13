@@ -59,11 +59,13 @@ class AuthController extends Controller
             }
 
             if ($user->status === 'rejected') {
-                Auth::logout();
-                $request->session()->invalidate();
-                return back()->withErrors([
-                    'email' => 'Your account registration request has been REJECTED by the System Admin.',
-                ])->withInput();
+                if ($user->role !== 'student') {
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    return back()->withErrors([
+                        'email' => 'Your account registration request has been REJECTED by the System Admin.',
+                    ])->withInput();
+                }
             }
 
             // Status Approved - Sync Role & Redirect Access
@@ -100,14 +102,20 @@ class AuthController extends Controller
     // 4. I-handle ang Register POST Request (Creation & Pending status)
     public function register(Request $request, $role = 'student')
     {
-        $postRole = $request->input('role', $role);
+        $postRole = $role === 'faculty' ? 'faculty' : 'student';
         $emailInput = trim($request->input('email'));
 
         $username = str_replace('@ssct.edu.ph', '', $emailInput);
         $fullEmail = $username . '@ssct.edu.ph';
 
         $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
+            'cor' => $postRole === 'student'
+                ? 'required|file|mimes:pdf,jpg,jpeg,png,webp,gif|max:10240'
+                : 'nullable|file|mimes:pdf,jpg,jpeg,png,webp,gif|max:10240',
         ]);
 
         $studentId = $request->input('student_id') ?? $request->input('id_number') ?? $request->input('student_no');
@@ -134,12 +142,21 @@ class AuthController extends Controller
         $department  = $request->input('department')   ?? $request->input('college')     ?? 'College of Computer Studies';
         $designation = $request->input('designation')  ?? $request->input('position');
 
+        $corPath = null;
+        if ($postRole === 'student') {
+            $corPath = $request->file('cor')->store('cor', 'local');
+            if ($corPath === false) {
+                throw new \RuntimeException('The COR document could not be stored.');
+            }
+        }
+
         User::create([
             'name'        => $name,
             'student_id'  => $studentId,
             'course'      => $course,
             'department'  => $department,
             'designation' => $designation,
+            'cor_path'    => $corPath,
             'email'       => $fullEmail,
             'password'    => Hash::make($request->input('password')),
             'role'        => $postRole,
@@ -147,7 +164,7 @@ class AuthController extends Controller
         ]);
 
         return redirect()->route('login', ['role' => $postRole])
-            ->with('success', 'Registration submitted successfully! Your account is PENDING approval by the System Admin before you can log in.');
+            ->with('success', 'Registration submitted successfully! Your account is PENDING approval after the System Admin reviews your registration documents.');
     }
 
 

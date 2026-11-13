@@ -21,6 +21,8 @@ class StudentController extends Controller
     public function dashboard()
     {
         $studentId = Auth::id();
+        $notifications = Auth::user()->notifications()->latest()->take(5)->get();
+        $unreadNotificationCount = Auth::user()->unreadNotifications()->count();
 
         $upcomingAppointment = Appointment::with('faculty')
             ->where('student_id', $studentId)
@@ -46,7 +48,22 @@ class StudentController extends Controller
                 ->get();
         }
 
-        return view('student.dashboard', compact('upcomingAppointment', 'faculties', 'pendingCount', 'announcements'));
+        return view('student.dashboard', compact(
+            'upcomingAppointment',
+            'faculties',
+            'pendingCount',
+            'announcements',
+            'notifications',
+            'unreadNotificationCount'
+        ));
+    }
+
+    public function markNotificationRead($id)
+    {
+        $notification = Auth::user()->notifications()->whereKey($id)->firstOrFail();
+        $notification->markAsRead();
+
+        return back();
     }
 
 

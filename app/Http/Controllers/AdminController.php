@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use App\Notifications\StudentStatusNotification;
 
 class AdminController extends Controller
 {
@@ -43,7 +45,7 @@ class AdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $verifiedUsers = User::where('status', 'approved')
+        $verifiedUsers = User::whereIn('status', ['approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -54,8 +56,20 @@ class AdminController extends Controller
     public function approveUser($id)
     {
         $user = User::findOrFail($id);
+        if ($user->role === 'student'
+            && (!$user->cor_path || !Storage::disk('local')->exists($user->cor_path))) {
+            return back()->withErrors(['cor' => 'A COR document must be available for review before approving this student.']);
+        }
+
         $user->status = 'approved';
         $user->save();
+        if ($user->role === 'student') {
+            $user->notify(new StudentStatusNotification(
+                'Your student registration has been approved. You can now book appointments.',
+                'approved',
+                'account'
+            ));
+        }
 
         return back()->with('success', "Account for {$user->name} has been APPROVED successfully!");
     }
@@ -66,8 +80,56 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $user->status = 'rejected';
         $user->save();
+        if ($user->role === 'student') {
+            $user->notify(new StudentStatusNotification(
+                'Your student registration was rejected. Please contact the System Admin for assistance.',
+                'rejected',
+                'account'
+            ));
+        }
 
         return back()->with('success', "Account for {$user->name} has been REJECTED.");
+    }
+
+    public function editUser($id)
+    {
+        $user = User::findOrFail($id);
+
+        return view('admin.edit-user', compact('user'));
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $previousStatus = $user->status;
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'student_id' => 'nullable|string|max:255|unique:users,student_id,' . $user->id,
+            'course' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'designation' => 'nullable|string|max:255',
+            'status' => 'required|in:pending,approved,rejected',
+        ]);
+
+        $user->update($validated);
+        if ($user->role === 'student' && $previousStatus !== $user->status && in_array($user->status, ['approved', 'rejected'], true)) {
+            $message = $user->status === 'approved'
+                ? 'Your student registration has been approved. You can now book appointments.'
+                : 'Your student registration was rejected. Please contact the System Admin for assistance.';
+            $user->notify(new StudentStatusNotification($message, $user->status, 'account'));
+        }
+
+        return redirect()->route('admin.user-management')
+            ->with('success', "User profile for {$user->name} has been updated.");
+    }
+
+    public function downloadCor($id)
+    {
+        $user = User::where('role', 'student')->findOrFail($id);
+        abort_unless($user->cor_path && Storage::disk('local')->exists($user->cor_path), 404);
+
+        return Storage::disk('local')->download($user->cor_path, 'student-' . $user->student_id . '-cor');
     }
 
 

@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class FacultyController extends Controller
 {
@@ -64,34 +65,49 @@ class FacultyController extends Controller
     public function saveSchedule(Request $request)
     {
         $request->validate([
-            'day_of_week' => 'required|string',
+            'day_of_week' => 'required_without:schedule_date|nullable|in:Mon,Tue,Wed,Thu,Fri,Sat,Sun',
+            'schedule_date' => 'nullable|date_format:Y-m-d',
             'time_slot'   => 'required|string',
-            'slot_type'   => 'required|string',
+            'slot_type'   => 'required|in:Consultation,Lecture,Break,Unavailable,Empty,Clear',
         ]);
 
         $facultyId = Auth::id();
         $slotType  = $request->input('slot_type');
+        $scheduleDate = $request->input('schedule_date');
+        $dayOfWeek = $scheduleDate
+            ? Carbon::parse($scheduleDate)->format('D')
+            : $request->input('day_of_week');
 
         if (Schema::hasTable('faculty_schedules')) {
             if ($slotType === 'Empty' || $slotType === 'Clear') {
-                DB::table('faculty_schedules')
+                $query = DB::table('faculty_schedules')
                     ->where('faculty_id', $facultyId)
-                    ->where('day_of_week', $request->input('day_of_week'))
-                    ->where('time_slot', $request->input('time_slot'))
-                    ->delete();
+                    ->where('time_slot', $request->input('time_slot'));
+                if ($scheduleDate) {
+                    $query->whereDate('schedule_date', $scheduleDate);
+                } else {
+                    $query->whereNull('schedule_date')->where('day_of_week', $dayOfWeek);
+                }
+                $query->delete();
 
                 return back()->with('success', 'Schedule slot cleared and set to Empty!');
             }
 
             DB::table('faculty_schedules')->updateOrInsert(
-                [
+                $scheduleDate ? [
+                    'faculty_id' => $facultyId,
+                    'schedule_date' => $scheduleDate,
+                    'time_slot' => $request->input('time_slot'),
+                ] : [
                     'faculty_id'  => $facultyId,
-                    'day_of_week' => $request->input('day_of_week'),
+                    'schedule_date' => null,
+                    'day_of_week' => $dayOfWeek,
                     'time_slot'   => $request->input('time_slot'),
                 ],
                 [
+                    'day_of_week'  => $dayOfWeek,
                     'slot_type'    => $slotType,
-                    'title'        => $request->input('title', 'Consultation'),
+                    'title'        => $request->input('title', $slotType),
                     'is_available' => $slotType === 'Consultation' ? 1 : 0,
                     'updated_at'   => now(),
                     'created_at'   => now(),

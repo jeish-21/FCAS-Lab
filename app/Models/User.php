@@ -28,6 +28,7 @@ class User extends Authenticatable
         'course',
         'department',
         'designation',
+        'cor_path',
     ];
 
     /**
@@ -64,4 +65,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Appointment::class, 'faculty_id');
     }
+
 }

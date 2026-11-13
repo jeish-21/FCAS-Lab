@@ -33,7 +33,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('register.post', ['role' => 'student']) }}" method="POST" class="register-form">
+            <form action="{{ route('register.post', ['role' => 'student']) }}" method="POST" enctype="multipart/form-data" class="register-form">
                 @csrf
                 <input type="hidden" name="role" value="student">
 
@@ -50,6 +50,17 @@
                             <input type="text" name="last_name" placeholder="Last Name" value="{{ old('last_name') }}" required>
                         </div>
                     </div>
+                </div>
+
+                <div class="input-field-wrapper">
+                    <label for="cor" style="display: block; color: #e0e0e0; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">
+                        Certificate of Registration (COR) <span aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-file-arrow-up input-icon"></i>
+                        <input type="file" id="cor" name="cor" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,application/pdf,image/*" required>
+                    </div>
+                    <span class="input-subtext">Required for account verification. Accepted: PDF or image, up to 10 MB.</span>
                 </div>
 
                 <div class="form-row">

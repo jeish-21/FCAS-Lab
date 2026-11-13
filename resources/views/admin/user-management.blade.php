@@ -79,6 +79,11 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                @if($errors->any())
+                    <div role="alert" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fecaca; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px;">
+                        @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+                    </div>
+                @endif
 
                 <!-- Section 1: Pending Registrations for Verification -->
                 <div class="dash-card support-card-glass faculty-card-box" style="margin-bottom: 25px;">
@@ -96,7 +101,7 @@
                                     <th style="padding: 12px 15px;">Requested Role</th>
                                     <th style="padding: 12px 15px;">Department / Course / Designation</th>
                                     <th style="padding: 12px 15px;">Student ID</th>
-                                    <th style="padding: 12px 15px; text-align: center;">Actions</th>
+                                    <th style="padding: 12px 15px; text-align: center;">COR / Actions</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: 0.9rem;">
@@ -119,6 +124,12 @@
                                     </td>
                                     <td style="padding: 14px 15px; text-align: center;">
                                         <div style="display: flex; gap: 8px; justify-content: center;">
+                                            @if($user->role === 'student' && $user->cor_path)
+                                                <a href="{{ route('admin.users.cor', $user->id) }}" target="_blank" rel="noopener" style="background: #2563eb; color: white; padding: 6px 10px; border-radius: 8px; font-weight: 700; text-decoration: none;">
+                                                    <i class="fa-solid fa-file-arrow-down"></i> View COR
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('admin.users.edit', $user->id) }}" style="background: rgba(255,255,255,0.2); color: white; padding: 6px 10px; border-radius: 8px; font-weight: 700; text-decoration: none;">Edit</a>
                                             <!-- Accept / Approve Form -->
                                             <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" style="margin:0;">
                                                 @csrf
@@ -152,7 +163,7 @@
                 <!-- Section 2: Verified Active Users -->
                 <div class="dash-card support-card-glass faculty-card-box">
                     <h3 class="card-title-support" style="color: #4ade80;">
-                        <i class="fa-solid fa-user-check"></i> Verified Accounts
+                        <i class="fa-solid fa-user-check"></i> Existing Accounts
                     </h3>
 
                     <div style="overflow-x: auto;">
@@ -165,6 +176,7 @@
                                     <th style="padding: 12px 15px;">Department / Course</th>
                                     <th style="padding: 12px 15px;">Student ID</th>
                                     <th style="padding: 12px 15px;">Status</th>
+                                    <th style="padding: 12px 15px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: 0.9rem;">
@@ -182,13 +194,16 @@
                                         {{ $vUser->student_id ?? $vUser->id_number ?? 'N/A' }}
                                     </td>
                                     <td style="padding: 14px 15px;">
-                                        <span style="color: #4ade80; font-weight: 700;">Verified Active</span>
+                                        <span style="color: {{ $vUser->status === 'approved' ? '#4ade80' : '#f87171' }}; font-weight: 700; text-transform: capitalize;">{{ $vUser->status }}</span>
+                                    </td>
+                                    <td style="padding: 14px 15px;">
+                                        <a href="{{ route('admin.users.edit', $vUser->id) }}" style="color: #93c5fd; font-weight: 700;">Edit</a>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">
-                                        No verified active users found.
+                                    <td colspan="7" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6);">
+                                        No existing accounts found.
                                     </td>
                                 </tr>
                                 @endforelse

@@ -78,13 +78,51 @@
                 <div class="dash-card support-card-glass" style="padding: 20px;">
                     <div style="margin-bottom: 20px;">
                         <h3 class="card-title-support" style="margin: 0;">Weekly Consultation & Teaching Timetable</h3>
-                        <p style="color: #ccc; font-size: 0.85rem; margin-top: 4px;">Click any box once to toggle Consultation slot or Undo back to Empty directly in Database. Accepted student consultations appear in blue.</p>
+                        <p style="color: #ccc; font-size: 0.85rem; margin-top: 4px;">Click a weekly slot to cycle through Consultation, Unavailable, and Empty. Student appointments appear in blue; unavailable slots appear in red.</p>
                     </div>
 
                     @php
                         $schedulesList = isset($schedules) ? $schedules : collect();
                         $approvedList = isset($approvedAppointments) ? $approvedAppointments : collect();
+                        $datedSchedules = $schedulesList->filter(function ($item) {
+                            return !empty($item->schedule_date);
+                        });
                     @endphp
+
+                        <div class="dash-card support-card-glass" style="padding: 20px; margin-bottom: 20px;">
+                            <h3 class="card-title-support" style="margin-top: 0;">Block a Specific Date and Time</h3>
+                            <p style="color: #ccc; font-size: 0.85rem;">Date-specific unavailable slots are shown in red to students and cannot be booked.</p>
+                            <form action="{{ route('faculty.my-schedule.save') }}" method="POST" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: end;">
+                                @csrf
+                                <label style="color: white;">Date
+                                    <input type="date" name="schedule_date" min="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}" required>
+                                </label>
+                                <label style="color: white;">Time slot
+                                    <select name="time_slot" required>
+                                        @foreach(['07:00 AM', '07:30 AM', '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM', '06:00 PM', '06:30 PM', '07:00 PM', '07:30 PM', '08:00 PM', '08:30 PM'] as $time)
+                                            <option value="{{ $time }}">{{ $time }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <input type="hidden" name="slot_type" value="Unavailable">
+                                <button type="submit" style="background: #ef4444; color: white; border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 700;">Mark Unavailable</button>
+                            </form>
+
+                            @if($datedSchedules->isNotEmpty())
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;">
+                                    @foreach($datedSchedules as $datedSlot)
+                                        <form action="{{ route('faculty.my-schedule.save') }}" method="POST" style="display: inline-flex; gap: 8px; align-items: center; background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: white; padding: 7px 10px; border-radius: 8px;">
+                                            @csrf
+                                            <span>{{ $datedSlot->schedule_date }} · {{ $datedSlot->time_slot }} ({{ $datedSlot->slot_type }})</span>
+                                            <input type="hidden" name="schedule_date" value="{{ $datedSlot->schedule_date }}">
+                                            <input type="hidden" name="time_slot" value="{{ $datedSlot->time_slot }}">
+                                            <input type="hidden" name="slot_type" value="Clear">
+                                            <button type="submit" style="background: transparent; color: white; border: 0; cursor: pointer;" aria-label="Clear dated slot">×</button>
+                                        </form>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
 
                     <!-- Timetable Grid -->
                     <div style="display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 8px; text-align: center;">
@@ -135,11 +173,13 @@
                                     });
 
                                     $slot = $schedulesList->firstWhere(function($item) use ($day, $time) {
-                                        return isset($item->day_of_week) && $item->day_of_week === $day && isset($item->time_slot) && $item->time_slot === $time;
+                                        return empty($item->schedule_date) && isset($item->day_of_week) && $item->day_of_week === $day && isset($item->time_slot) && $item->time_slot === $time;
                                     });
 
                                     $slotType = $slot->slot_type ?? 'Empty';
-                                    $nextType = ($slotType === 'Consultation') ? 'Empty' : 'Consultation';
+                                    $nextType = $slotType === 'Consultation'
+                                        ? 'Unavailable'
+                                        : ($slotType === 'Unavailable' ? 'Empty' : 'Consultation');
                                 @endphp
 
                                 @if($bookedAppointment)
@@ -168,6 +208,8 @@
                                                     background: #2ae269; color: #1a1a1a; box-shadow: 0 0 10px rgba(42, 226, 105, 0.4);
                                                 @elseif($slotType === 'Lecture')
                                                     background: rgba(255,255,255,0.25); color: white;
+                                                @elseif($slotType === 'Unavailable')
+                                                    background: #ef4444; color: white; box-shadow: 0 0 10px rgba(239,68,68,0.4);
                                                 @else
                                                     background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); color: #aaa;
                                                 @endif">

@@ -65,11 +65,22 @@
             <main class="dashboard-content">
                 <h2 class="dash-title">BOOK AN APPOINTMENT</h2>
 
+                @if($errors->any())
+                    <div role="alert" style="background: rgba(220, 53, 69, 0.2); border: 1px solid #ef4444; color: #fecaca; padding: 12px; border-radius: 10px; margin-bottom: 16px;">
+                        @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+                    </div>
+                @endif
+
+                @if(!$canBook)
+                    <div role="status" class="dash-card support-card-glass" style="padding: 20px; color: #facc15;">
+                        Your student account is pending approval. Appointment booking will be available after an administrator approves your registration.
+                    </div>
+                @else
                 <form action="{{ route('student.book-appointment.post') }}" method="POST">
                     @csrf
                     
                     @php
-                        $selectedParamId = request()->query('faculty_id') ?? ($faculties->first()->id ?? 1);
+                        $selectedParamId = $facultyId ?? ($faculties->first()->id ?? '');
                     @endphp
 
                     <!-- Hidden Input for Selected Faculty ID -->
@@ -113,13 +124,13 @@
                             
                             <div style="margin-bottom: 15px;">
                                 <label style="display: block; color: #e0e0e0; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">Select Date</label>
-                                <input type="date" name="appointment_date" value="{{ date('Y-m-d') }}" class="glass-input" required>
+                                <input type="date" id="appointment_date" name="appointment_date" value="{{ $selectedDate }}" class="glass-input" min="{{ date('Y-m-d') }}" onchange="refreshAvailability()" required>
                             </div>
 
                             <div style="margin-bottom: 15px;">
                                 <label style="display: block; color: #e0e0e0; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">Available Time Slots (7:00 AM - 8:30 PM)</label>
                                 <div class="glass-select-wrapper">
-                                    <select name="time_slot" class="glass-select" required>
+                                    <select name="time_slot" id="time_slot" class="glass-select" required>
                                         <option value="" disabled selected class="glass-option">-- Select Preferred Time --</option>
                                         
                                         @php
@@ -133,25 +144,21 @@
                                                 '07:00 PM', '07:30 PM', '08:00 PM', '08:30 PM'
                                             ];
 
-                                            $availableFacultySchedules = isset($schedules) ? (is_array($schedules) ? $schedules : $schedules->toArray()) : [];
+                                            $availableFacultySchedules = $consultationSlots ?? [];
+                                            $facultyUnavailableSlots = $unavailableSlots ?? [];
                                             $takenBookedSlots = isset($bookedSlots) ? $bookedSlots : [];
                                         @endphp
 
                                         @foreach($allTimeSlots as $time)
                                             @php
                                                 $isBooked = in_array($time, $takenBookedSlots);
-                                                $isFacultyAvailable = empty($availableFacultySchedules) || in_array($time, $availableFacultySchedules);
+                                                $isMarkedUnavailable = in_array($time, $facultyUnavailableSlots);
+                                                $isOutsideConsultationSchedule = !empty($availableFacultySchedules) && !in_array($time, $availableFacultySchedules);
                                             @endphp
 
-                                            @if($isBooked)
-                                                <!-- Fully Booked / Reserved (PULA) -->
+                                            @if($isBooked || $isMarkedUnavailable || $isOutsideConsultationSchedule)
                                                 <option value="{{ $time }}" disabled style="background-color: #ef4444; color: #ffffff; font-weight: bold;">
-                                                    ⛔ {{ $time }} - Fully Booked / Reserved
-                                                </option>
-                                            @elseif(!$isFacultyAvailable)
-                                                <!-- Not Available in Faculty Schedule (ABUHO) -->
-                                                <option value="{{ $time }}" disabled style="background-color: #333333; color: #888888;">
-                                                    🚫 {{ $time }} - Not Available
+                                                    {{ $time }} - {{ $isBooked ? 'Booked' : 'Unavailable' }}
                                                 </option>
                                             @else
                                                 <!-- Available (BERDE) -->
@@ -161,6 +168,9 @@
                                             @endif
                                         @endforeach
                                     </select>
+                                </div>
+                                <div id="availabilityRefreshError" role="alert" style="display: none; color: #fecaca; font-size: 0.8rem; margin-top: 6px;">
+                                    Availability could not be refreshed. Reload the page to try again.
                                 </div>
                             </div>
                         </div>
@@ -196,6 +206,7 @@
 
                     </div>
                 </form>
+                @endif
             </main>
         </div>
     </div>
@@ -287,6 +298,58 @@ function selectFaculty(id, element) {
     });
     element.style.background = 'rgba(42, 226, 105, 0.2)';
     element.style.border = '1px solid #2ae269';
+    refreshAvailability();
+}
+
+function refreshAvailability() {
+    const url = new URL("{{ route('student.book-appointment') }}", window.location.origin);
+    url.searchParams.set('faculty_id', document.getElementById('selected_faculty_id').value);
+    url.searchParams.set('appointment_date', document.getElementById('appointment_date').value);
+    window.location.href = url.toString();
+}
+
+async function refreshTimeSlots() {
+    const select = document.getElementById('time_slot');
+    const facultyId = document.getElementById('selected_faculty_id');
+    const date = document.getElementById('appointment_date');
+    const error = document.getElementById('availabilityRefreshError');
+
+    if (!select || !facultyId || !facultyId.value || !date || !date.value) return;
+
+    try {
+        const url = new URL(@json(route('student.availability-slots')), window.location.origin);
+        url.searchParams.set('faculty_id', facultyId.value);
+        url.searchParams.set('appointment_date', date.value);
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error('Availability request failed.');
+
+        const result = await response.json();
+        const selectedTime = select.value;
+        select.replaceChildren(new Option('-- Select Preferred Time --', '', true, true));
+
+        result.slots.forEach(slot => {
+            const option = new Option(`${slot.time} - ${slot.reason}`, slot.time);
+            option.disabled = !slot.available;
+            if (!slot.available) {
+                option.style.backgroundColor = '#ef4444';
+                option.style.color = '#ffffff';
+            }
+            select.add(option);
+        });
+
+        if (result.slots.some(slot => slot.time === selectedTime && slot.available)) {
+            select.value = selectedTime;
+        }
+        error.style.display = 'none';
+    } catch (error) {
+        document.getElementById('availabilityRefreshError').style.display = 'block';
+    }
+}
+
+if (document.getElementById('time_slot')) {
+    window.setInterval(() => {
+        if (document.visibilityState === 'visible') refreshTimeSlots();
+    }, 15000);
 }
 
 function filterFacultySelection() {

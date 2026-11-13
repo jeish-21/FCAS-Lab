@@ -71,6 +71,45 @@
             <!-- Main Content Workspace --> 
             <main class="dashboard-content"> 
                 <h2 class="dash-title">STUDENT DASHBOARD</h2> 
+                @if(Auth::user()->status === 'rejected')
+                    <div role="alert" class="dash-card support-card-glass" style="padding: 14px 18px; margin-bottom: 16px; border: 1px solid #ef4444; color: #fecaca;">
+                        Your registration was rejected. Appointment booking is disabled; review your in-app notification or contact the System Admin.
+                    </div>
+                @elseif(Auth::user()->status !== 'approved')
+                    <div role="status" class="dash-card support-card-glass" style="padding: 14px 18px; margin-bottom: 16px; border: 1px solid #eab308; color: #fde68a;">
+                        Your registration is pending COR verification. Appointment booking will be enabled after approval.
+                    </div>
+                @endif
+
+                <section class="dash-card support-card-glass" aria-label="In-app notifications" style="padding: 16px 20px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <h3 class="card-title-support" style="margin: 0;">
+                            <i class="fa-solid fa-bell"></i> Notifications
+                            @if(($unreadNotificationCount ?? 0) > 0)
+                                <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 0.75rem;">{{ $unreadNotificationCount }} new</span>
+                            @endif
+                        </h3>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        @forelse($notifications as $notification)
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255,255,255,0.12); padding: 10px 0; color: {{ $notification->read_at ? '#d0d0d0' : 'white' }};">
+                                <div>
+                                    <strong>{{ $notification->data['status'] ?? 'Update' }}</strong>
+                                    <span>{{ $notification->data['message'] ?? 'Your account has an update.' }}</span>
+                                    <small style="display: block; color: #aaa;">{{ $notification->created_at->diffForHumans() }}</small>
+                                </div>
+                                @if(!$notification->read_at)
+                                    <form action="{{ route('student.notifications.read', $notification->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 8px; padding: 6px 9px; cursor: pointer;">Mark read</button>
+                                    </form>
+                                @endif
+                            </div>
+                        @empty
+                            <p style="color: #bbb; margin: 10px 0 0;">No notifications yet.</p>
+                        @endforelse
+                    </div>
+                </section>
 
                 <!-- Top Row Grid -->
                 <div class="dash-main-top-grid">

@@ -67,12 +67,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/user-management', [AdminController::class, 'userManagement'])->name('user-management');
     Route::post('/users/{id}/approve', [AdminController::class, 'approveUser'])->name('users.approve');
     Route::post('/users/{id}/reject', [AdminController::class, 'rejectUser'])->name('users.reject');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::get('/users/{id}/cor', [AdminController::class, 'downloadCor'])->name('users.cor');
 
     Route::get('/faculty-directory', [AdminController::class, 'facultyDirectory'])->name('faculty-directory');
     Route::get('/student-roster', [AdminController::class, 'studentRoster'])->name('student-roster');
 
     Route::get('/all-appointments', [AppointmentController::class, 'adminAllAppointments'])->name('all-appointments');
-    Route::post('/appointments/{id}/status', [AppointmentController::class, 'updateStatusByAdmin'])->name('appointments.update-status');
+    Route::get('/appointments/{id}/edit', [AppointmentController::class, 'editAdminAppointment'])->name('appointments.edit');
+    Route::put('/appointments/{id}', [AppointmentController::class, 'updateAdminAppointment'])->name('appointments.update');
 
     Route::get('/support-tickets', [SupportTicketController::class, 'adminIndex'])->name('support-tickets');
     Route::post('/support-tickets/{id}/status', [SupportTicketController::class, 'adminUpdateStatus'])->name('support-tickets.update-status');
@@ -81,10 +85,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // 7. Student Module Routes (Protected with auth and student role middleware)
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+    Route::post('/notifications/{id}/read', [StudentController::class, 'markNotificationRead'])->name('notifications.read');
 
     Route::get('/faculty-availability', [StudentController::class, 'facultyAvailability'])->name('faculty-availability');
     Route::get('/faculty_availability', function () { return redirect()->route('student.faculty-availability'); });
 
+    Route::get('/availability-slots', [AppointmentController::class, 'availabilitySlots'])->name('availability-slots');
     Route::get('/book-an-appointment', [AppointmentController::class, 'create'])->name('book-appointment');
     Route::get('/book_an_appointment', function () { return redirect()->route('student.book-appointment'); });
     Route::post('/book-an-appointment', [AppointmentController::class, 'store'])->name('book-appointment.post');

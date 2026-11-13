@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('student'); // Gi-add ang role nga adunay default value
-        });
+        if (!Schema::hasColumn('users', 'role')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('role')->default('student');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role'); // Aron ma-rollback kung kinahanglan
-        });
+        // The base users migration already owns the role column.
     }
 };

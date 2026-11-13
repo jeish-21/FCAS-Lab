@@ -73,6 +73,11 @@
             <!-- Main Content Workspace -->
             <main class="dashboard-content">
                 <h2 class="dash-title">SYSTEM CONSULTATIONS & APPOINTMENTS</h2>
+                @if(session('success'))
+                    <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #4ade80; padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-weight: 600;">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
                 <!-- Search and Filter Bar Card -->
                 <div class="dash-card support-card-glass faculty-card-box" style="margin-bottom: 20px;">
@@ -121,6 +126,7 @@
                                     <th style="padding: 12px 15px;">Consultation Type & Reason</th>
                                     <th style="padding: 12px 15px;">Date & Time Slot</th>
                                     <th style="padding: 12px 15px; text-align: center;">Status</th>
+                                    <th style="padding: 12px 15px; text-align: center;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: 0.9rem;">
@@ -151,10 +157,13 @@
                                             <span style="background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid #eab308; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Pending</span>
                                         @endif
                                     </td>
+                                    <td style="padding: 14px 15px; text-align: center;">
+                                        <a href="{{ route('admin.appointments.edit', $appointment->id) }}" style="background: #2563eb; color: white; text-decoration: none; padding: 7px 12px; border-radius: 8px; font-weight: 700;">Edit</a>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" style="padding: 25px; text-align: center; color: rgba(255,255,255,0.6);">
+                                    <td colspan="6" style="padding: 25px; text-align: center; color: rgba(255,255,255,0.6);">
                                         No appointment records found matching the selected criteria.
                                     </td>
                                 </tr>
