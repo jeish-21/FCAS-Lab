@@ -71,6 +71,21 @@
             <!-- Main Content Workspace --> 
             <main class="dashboard-content"> 
                 <h2 class="dash-title">STUDENT DASHBOARD</h2> 
+
+                <!-- TEMPORARY TEST BUTTON FOR 403 SCREENSHOT -->
+                <div class="dash-card support-card-glass" style="padding: 14px 18px; margin-bottom: 16px; border: 1px solid #ef4444; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="color: #fecaca; font-size: 0.9rem;">
+                        <strong>Security Test:</strong> Trigger unauthorized Admin PUT request
+                    </span>
+                    <form action="{{ route('admin.users.update', 1) }}" method="POST" style="margin: 0;">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                            Test Restricted Action (403)
+                        </button>
+                    </form>
+                </div>
+
                 @if(Auth::user()->status === 'rejected')
                     <div role="alert" class="dash-card support-card-glass" style="padding: 14px 18px; margin-bottom: 16px; border: 1px solid #ef4444; color: #fecaca;">
                         Your registration was rejected. Appointment booking is disabled; review your in-app notification or contact the System Admin.
