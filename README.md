@@ -57,3 +57,60 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Laboratory Activity 2 — RBAC
+
+## Laboratory Activity 2 — RBAC
+
+### 1. Project Title and Short Description
+
+**Project Title:** SNSU Faculty Consultation & Appointment System (FCAS)
+
+**Description:** FCAS is a Laravel web application that allows students to book faculty consultations and appointments. It includes separate modules for students, faculty members, and administrators. Role-Based Access Control (RBAC) is implemented to restrict access to routes according to the authenticated user's role.
+
+### 2. Selected Approach
+
+**Approach: Dynamic Middleware**
+
+The application uses a custom `CheckRole` middleware that accepts a role parameter. The middleware is applied to route groups using the `role` alias, such as `role:admin`, `role:faculty`, and `role:student`.
+
+### 3. Role-and-Permission Table
+
+| Role | Permissions |
+|---|---|
+| Admin | Access the admin dashboard, manage users, approve or reject registrations, manage appointments, and handle support tickets. |
+| Faculty | Access the faculty dashboard, manage schedules, respond to consultation requests, manage announcements, and handle support tickets. |
+| Student | Access the student dashboard, view faculty availability, book appointments, view consultation logs, read announcements, and submit support tickets. |
+
+### 4. Middleware Implementation
+
+- **Middleware class:** `App\Http\Middleware\CheckRole`
+- **Middleware alias:** `role`
+- **Alias registration:** `bootstrap/app.php`
+- **Middleware logic:** `app/Http/Middleware/CheckRole.php`
+- **Protected routes:** `routes/web.php`
+
+The application protects its main role-specific route groups with the `auth` and `role` middleware.
+
+Examples of protected routes:
+- Admin: `/admin/dashboard`
+- Faculty: `/faculty/dashboard`
+- Student: `/student/dashboard`
+
+### 5. How the Middleware Authorizes Requests
+
+The `CheckRole` middleware first checks whether the user is authenticated. If the user is not logged in, the middleware redirects the request to the login page. It then retrieves the authenticated user's role and compares it with the role required by the route. If the roles do not match, the application returns a 403 Unauthorized action response; otherwise, the request continues to the intended destination. This enforces authorization on the server side.
+
+### 6. Evidence Screenshots
+
+The following screenshots demonstrate the RBAC implementation and authorization results:
+
+1. [Admin Allowed](evidence/01-admin-allowed.png)
+2. [Other Role Allowed](evidence/02-other-role-allowed.png)
+3. [Role Access Denied](evidence/03-role-denied.png)
+4. [Guest Access Blocked](evidence/04-guest-blocked.png)
+5. [Restricted Action Denied](evidence/05-restricted-action-denied.png)
+
+### 7. Reflection
+
+One challenge in implementing RBAC was ensuring that each user role could access only its designated routes. Creating and registering the custom middleware required careful configuration and testing. Server-side authorization is necessary because users may attempt to access restricted URLs directly instead of navigating through the application's interface. By checking authentication and roles on the server, the application helps prevent unauthorized access to protected features.

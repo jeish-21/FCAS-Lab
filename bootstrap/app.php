@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use App\Http\Middleware\CheckRole;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -12,6 +13,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin/*')) {
+                return route('login', ['role' => 'admin']);
+            }
+
+            if ($request->is('faculty/*')) {
+                return route('login', ['role' => 'faculty']);
+            }
+
+            return route('login');
+        });
+
         // I-disable ang CSRF para sa Postman
         $middleware->validateCsrfTokens(except: [
             '*',
